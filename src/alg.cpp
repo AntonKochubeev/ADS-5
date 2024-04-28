@@ -1,77 +1,76 @@
-#include <string>
-#include <cctype>
-#include <sstream>
-#include "include/tstack.h"
+#include <map>
+#include "tstack.h"
 
-bool isOperator(char c) {
-    return c == '+' || c == '-' || c == '*' || c == '/';
+TStack<char, 100> stack1;
+TStack<int, 100> stack2;
+
+int Priority(char operand) {
+  if (operand == '+' || operand == '-') return 1;
+  if (operand == '*' || operand == '/') return 2;
+  return 0;
 }
-
-int precedence(char op) {
-    if (op == '+' || op == '-') return 1;
-    if (op == '*' || op == '/') return 2;
-    return 0;
-}
-
 std::string infx2pstfx(std::string inf) {
-    std::stringstream postfix;
-    TStack<char, 100> operators;
-
-    for (char c : inf) {
-        if (c == ' ') continue;
-
-        if (std::isdigit(c)) {
-            postfix << c << ' ';
-        } else if (c == '(') {
-            operators.push(c);
-        } else if (c == ')') {
-            while (!operators.isEmpty() && operators.peek() != '(') {
-                postfix << operators.pop() << ' ';
-            }
-            operators.pop();
-        } else if (isOperator(c)) {
-            while (!operators.isEmpty() && precedence(operators.peek()) >= precedence(c)) {
-                postfix << operators.pop() << ' ';
-            }
-            operators.push(c);
-        }
+  std::string postfix;
+  TStack<char, 100> stack;
+  for (char c : inf) {
+    if (isdigit(c)) {
+      postfix = postfix + c + ' ';
+    } else if (c == '(') {
+      stack.push(c);
+    } else if (c == '+' || c == '-' || c == '*' || c == '/') {
+      while (!stack.isEmpty() && Priority(stack.show()) >= Priority(c)) {
+        postfix = postfix + stack.show() + ' ';
+        stack.pop();
+      }
+      stack.push(c);
+    } else if (c == ')') {
+      while (!stack.isEmpty() && stack.show() != '(') {
+        postfix = postfix + stack.show() + ' ';
+        stack.pop();
+      }
+      stack.pop();
     }
-
-    while (!operators.isEmpty()) {
-        postfix << operators.pop() << ' ';
-    }
-
-    return postfix.str();
+  }
+  while (!stack.isEmpty()) {
+    postfix = postfix + stack.show() + ' ';
+    stack.pop();
+  }
+  if (!postfix.empty()) {
+    postfix.pop_back();
+  }
+  return postfix;
 }
 
-int eval(std::string post) {
-    TStack<int, 100> operands;
-
-    for (char c : post) {
-        if (c == ' ') continue;
-
-        if (std::isdigit(c)) {
-            operands.push(c - '0');
-        } else if (isOperator(c)) {
-            int operand2 = operands.pop();
-            int operand1 = operands.pop();
-
-            switch(c) {
-                case '+':
-                    operands.push(operand1 + operand2);
-                    break;
-                case '-':
-                    operands.push(operand1 - operand2);
-                    break;
-                case '*':
-                    operands.push(operand1 * operand2);
-                    break;
-                case '/':
-                    operands.push(operand1 / operand2);
-                    break;
-            }
-        }
+int eval(std::string pref) {
+  std::string strNumber = "";
+  for (char c : pref) {
+    if (c != ' ' && c != '+' && c != '-' && c != '*' && c != '/') {
+      strNumber += c;
     }
+    if (c == ' ') {
+      if (!strNumber.empty()) {
+        int num = std::stoi(strNumber);
+        stack2.push(num);
+        strNumber = "";
+      }
+    }
+    if (c == '+' || c == '-' || c == '*' || c == '/') {
+      int i = stack2.show();
+      stack2.pop();
+      int j = stack2.show();
+      stack2.pop();
 
-    return operands.pop();
+      if (c == '+') {
+        stack2.push((j + i));
+      } else if (c == '-') {
+        stack2.push((j - i));
+      } else if (c == '*') {
+        stack2.push((j * i));
+      } else if (c == '/') {
+        stack2.push((j / i));
+      }
+    }
+  }
+
+  return stack2.show();
 }
