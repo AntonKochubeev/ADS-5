@@ -1,124 +1,77 @@
-#include <map>
-#include "tstack.h"
+#include <string>
+#include <cctype>
+#include <sstream>
+#include "include/tstack.h"
 
-TStack<char, 100> stackf;
-TStack<int, 100> stacks;
-
-std::string infx2pstfx(std::string inf) {
-  // добавьте код
-  return std::string("");
-    std::string out;
-    for (char indicator : inf) {
-        if (indicator == 40) {
-            stackf.push(indicator);
-        } else if (indicator >= 48 && indicator <= 57) {
-            out += indicator;
-            out += 32;
-        } else if (indicator == 41) {
-            while (stackf.get() != 40 && !stackf.isEmpty()) {
-                out += stackf.pop();
-                out += 32;
-            }
-            if (stackf.get() == 40)
-                stackf.pop();
-        } else if (indicator == 43 || indicator == 45) {
-            if (!stackf.isEmpty()) {
-                switch (stackf.get()) {
-                case 43: {
-                    out += 43;
-                    out += 32;
-                    stackf.pop();
-                    break;
-                }
-                case 45: {
-                    out += 45;
-                    out += 32;
-                    stackf.pop();
-                    break;
-                }
-                case 42: {
-                    out += 42;
-                    out += 32;
-                    stackf.pop();
-                    break;
-                }
-                case 47: {
-                    out += 47;
-                    out += 32;
-                    stackf.pop();
-                    break;
-                }
-                }
-                stackf.push(indicator);
-            } else {
-                stackf.push(indicator);
-            }
-        } else if (indicator == 42 || indicator == 47) {
-            if (!stackf.isEmpty()) {
-                switch (stackf.get()) {
-                case 42: {
-                    out += 42;
-                    out += 32;
-                    stackf.pop();
-                    break;
-                }
-                case 47: {
-                    out += 47;
-                    out += 32;
-                    stackf.pop();
-                    break;
-                }
-                }
-                stackf.push(indicator);
-            } else {
-                stackf.push(indicator);
-            }
-        }
-    }
-    if (!stackf.isEmpty()) {
-        while (!stackf.isEmpty()) {
-            out += stackf.pop();
-            out += 32;
-        }
-        out.pop_back();
-    }
-    return out;
+bool isOperator(char c) {
+    return c == '+' || c == '-' || c == '*' || c == '/';
 }
 
-    std::string str;
-    char S;
-    for (char indicator : pref) {
-        if ((indicator >= 48 && indicator <= 57)) {
-            str += indicator;
+int precedence(char op) {
+    if (op == '+' || op == '-') return 1;
+    if (op == '*' || op == '/') return 2;
+    return 0;
+}
 
-        } else if (indicator == 32 && !str.empty()) {
-            stacks.push(std::stoi(str));
-            str.clear();
-        } else if (indicator == 43 || indicator == 45 ||
-            indicator == 42 || indicator == 47) {
-            switch (indicator) {
-            case 43: {
-                S = stacks.pop();
-                stacks.push(stacks.pop() + S);
-                break;
+std::string infx2pstfx(std::string inf) {
+    std::stringstream postfix;
+    TStack<char, 100> operators;
+
+    for (char c : inf) {
+        if (c == ' ') continue;
+
+        if (std::isdigit(c)) {
+            postfix << c << ' ';
+        } else if (c == '(') {
+            operators.push(c);
+        } else if (c == ')') {
+            while (!operators.isEmpty() && operators.peek() != '(') {
+                postfix << operators.pop() << ' ';
             }
-            case 45: {
-                S = stacks.pop();
-                stacks.push(stacks.pop() - S);
-                break;
+            operators.pop();
+        } else if (isOperator(c)) {
+            while (!operators.isEmpty() && precedence(operators.peek()) >= precedence(c)) {
+                postfix << operators.pop() << ' ';
             }
-            case 42: {
-                S = stacks.pop();
-                stacks.push(stacks.pop() * S);
-                break;
-            }
-            case 47: {
-                S = stacks.pop();
-                stacks.push(stacks.pop() / S);
-                break;
-            }
+            operators.push(c);
+        }
+    }
+
+    while (!operators.isEmpty()) {
+        postfix << operators.pop() << ' ';
+    }
+
+    return postfix.str();
+}
+
+int eval(std::string post) {
+    TStack<int, 100> operands;
+
+    for (char c : post) {
+        if (c == ' ') continue;
+
+        if (std::isdigit(c)) {
+            operands.push(c - '0');
+        } else if (isOperator(c)) {
+            int operand2 = operands.pop();
+            int operand1 = operands.pop();
+
+            switch(c) {
+                case '+':
+                    operands.push(operand1 + operand2);
+                    break;
+                case '-':
+                    operands.push(operand1 - operand2);
+                    break;
+                case '*':
+                    operands.push(operand1 * operand2);
+                    break;
+                case '/':
+                    operands.push(operand1 / operand2);
+                    break;
             }
         }
     }
-    return stacks.pop();
+
+    return operands.pop();
 }
