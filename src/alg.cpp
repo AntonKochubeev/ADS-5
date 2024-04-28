@@ -4,7 +4,7 @@
 TStack<char, 100> stack1;
 TStack<int, 100> stack2;
 
-int Priority(char operand) {
+int P(char operand) {
   if (operand == '+' || operand == '-') return 1;
   if (operand == '*' || operand == '/') return 2;
   return 0;
@@ -18,7 +18,7 @@ std::string infx2pstfx(std::string inf) {
     } else if (c == '(') {
       stack.push(c);
     } else if (c == '+' || c == '-' || c == '*' || c == '/') {
-      while (!stack.isEmpty() && Priority(stack.show()) >= Priority(c)) {
+      while (!stack.isEmpty() && P(stack.show()) >= P(c)) {
         postfix = postfix + stack.show() + ' ';
         stack.pop();
       }
