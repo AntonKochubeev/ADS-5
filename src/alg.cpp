@@ -31,7 +31,7 @@ std::string infx2pstfx(std::string inf) {
             }
             operators.pop();
         } else if (isOperator(c)) {
-            while (!operators.empty() && precedence(operators.top()) >= precedence(c)) {
+              while (!operators.empty() && precedence(operators.top()) >= precedence(c)) {
                 postfix << operators.top() << ' ';
                 operators.pop();
             }
@@ -61,7 +61,7 @@ int eval(std::string post) {
             int operand1 = operands.top();
             operands.pop();
 
-            switch(c) {
+              switch(c) {
                 case '+':
                     operands.push(operand1 + operand2);
                     break;
@@ -83,10 +83,8 @@ int eval(std::string post) {
 
 int main() {
     std::string infix_expr = "3 + 4 * 2 / (1 - 5)^2";
-    std::string postfix_expr = infx2pstfx(infix_expr);
-    
+    std::string postfix_expr = infx2pstfx(infix_expr);    
     std::cout << "Postfix expression: " << postfix_expr << std::endl;
-
     int result = eval(postfix_expr);
     std::cout << "Result: " << result << std::endl;
 
