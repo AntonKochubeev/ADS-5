@@ -1,104 +1,123 @@
-#include <map>
+// Copyright 2021 NNTU-CS
+#include <string>
 #include "tstack.h"
 
-static int get_priority(char element) {
-    if (element == '(') {
-        return 0;
-    } else if (element == ')') {
-        return 1;
-    } else if ((element == '+') || (element == '-')) {
-        return 2;
-    } else if ((element == '*') || (element == '/')) {
-        return 3;
-    } else {
-        throw "Unknown Symbol!";
-    }
-}
+TStack<char, 100> stack1;
+TStack<int, 100> stack2;
 
 std::string infx2pstfx(std::string inf) {
-  // добавьте код
-  return std::string("");
-    std::string out = "";
-    TStack<char, 100> chars;
-    for (int i = 0; i < inf.length(); i++) {
-        if (isdigit(inf[i])) {
-            out += inf[i];
-            if (i != inf.length() - 1) {
-                out += " ";
+    std::string exit;
+    for (char i : inf) {
+        if (i == '(') {
+            stack1.push(i);
+        } else if (i >= '0' && i <= '9') {
+            exit += i;
+            exit += ' ';
+        } else if (i == ')') {
+            while (stack1.get() != '(' && !stack1.isEmpty()) {
+                exit += stack1.pop();
+                exit += ' ';
             }
-        } else if (inf[i] == '(') {
-            chars.push(inf[i]);
-        } else if (chars.isempty()) {
-            chars.push(inf[i]);
-        } else if (inf[i] == ')') {
-            while (true) {
-                if (chars.isempty()) {
-                    break;
-                } else if (chars.check() == '(') {
-                    break;
+            if (stack1.get() == '(')
+                stack1.pop();
+        } else if (i == '+' || i == '-') {
+            if (!stack1.isEmpty()) {
+                switch (stack1.get()) {
+                    case '*': {
+                        exit += '*';
+                        exit += ' ';
+                        stack1.pop();
+                        break;
+                    }
+                    case '/': {
+                        exit += '/';
+                        exit += ' ';
+                        stack1.pop();
+                        break;
+                    }
+                    case '+': {
+                        exit += '+';
+                        exit += ' ';
+                        stack1.pop();
+                        break;
+                    }
+                    case '-': {
+                        exit += '-';
+                        exit += ' ';
+                        stack1.pop();
+                        break;
+                    }
                 }
-                out += chars.pop();
-                if (i != inf.length() - 1) {
-                    out += " ";
-                }
+                stack1.push(i);
+            } else {
+                stack1.push(i);
             }
-            chars.pop();
-        } else if (get_priority(inf[i]) > get_priority(chars.check())) {
-            chars.push(inf[i]);
-        } else {
-            while (true) {
-                if (chars.isempty()) {
-                    break;
-                } else if (!(get_priority(inf[i]) <=
-                             get_priority(chars.check()))) {
-                    break;
+        } else if (i == '*' || i == '/') {
+            if (!stack1.isEmpty()) {
+                switch (stack1.get()) {
+                    case '*': {
+                        exit += '*';
+                        exit += ' ';
+                        stack1.pop();
+                        break;
+                    }
+                    case '/': {
+                        exit += '/';
+                        exit += ' ';
+                        stack1.pop();
+                        break;
+                    }
                 }
-                out += chars.pop();
-                if (i != inf.length() - 1) {
-                    out += " ";
-                }
+                stack1.push(i);
+            } else {
+                stack1.push(i);
             }
-            chars.push(inf[i]);
         }
     }
-    while (!chars.isempty()) {
-        out += " ";
-        out += chars.pop();
+    if (!stack1.isEmpty()) {
+        while (!stack1.isEmpty()) {
+            exit += stack1.pop();
+            exit += ' ';
+        }
+        exit.pop_back();
     }
-    return out;
+    return exit;
 }
 
 int eval(std::string pref) {
-  // добавьте код
-  return 0;
-    std::string time = "";
-    TStack<int, 100> ints;
-    for (int i = 0; i < pref.length(); i++) {
-        if (isdigit(pref[i])) {
-            time += pref[i];
-        } else if (time.length() && pref[i] == ' ') {
-            ints.push(atoi(time.c_str()));
-            time = "";
-        } else if (pref[i] == '+') {
-            int two = ints.pop();
-            int one = ints.pop();
-            ints.push(one + two);
-        } else if (pref[i] == '-') {
-            int two = ints.pop();
-            int one = ints.pop();
-            ints.push(one - two);
-        } else if (pref[i] == '*') {
-            int two = ints.pop();
-            int one = ints.pop();
-            ints.push(one * two);
-        } else if (pref[i] == '/') {
-            int two = ints.pop();
-            int one = ints.pop();
-            ints.push(one / two);
+    std::string sTemp;
+    char cTemp;
+    for (char i : pref) {
+        if ((i >= '0' && i <= '9')) {
+            sTemp += i;
+
+        } else if (i == ' ' && !sTemp.empty()) {
+            stack2.push(std::stoi(sTemp));
+            sTemp.clear();
+        } else if (i == '+' || i == '-' || i == '*' || i == '/') {
+            switch (i) {
+                case '*': {
+                    cTemp = stack2.pop();
+                    stack2.push(stack2.pop() * cTemp);
+                    break;
+                }
+                case '/': {
+                    cTemp = stack2.pop();
+                    stack2.push(stack2.pop() / cTemp);
+                    break;
+                }
+                case '+': {
+                    cTemp = stack2.pop();
+                    stack2.push(stack2.pop() + cTemp);
+                    break;
+                }
+                case '-': {
+                    cTemp = stack2.pop();
+                    stack2.push(stack2.pop() - cTemp);
+                    break;
+                }
+            }
         }
     }
-    return ints.pop();
-}
-
-  return stack2.show();
+    return stack2.pop();
 }
